@@ -1,0 +1,50 @@
+trigger:
+ paths:
+   include:
+     - multi-stage-docker-build-flaskapp/*
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'c60e2859-da98-461a-b0df-e5f2d7d017f8'
+  imageRepository: 'vivinhubdocker'
+  containerRegistry: 'firstcon.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/multi-stage-docker-build-flaskapp/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+pool:
+ name: 'dockeragent'  
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    displayName: Build
+    
+    steps:
+
+    - task: Docker@2
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'build'
+        Dockerfile: '**/Dockerfile'
+        tags: '$(tag)'
+- stage: push
+  displayName: push
+  jobs:
+  - job: push
+    displayName: push
+    
+    steps:
+
+    - task: Docker@2
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'push'
+        tags: '$(tag)'
+       
